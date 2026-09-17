@@ -10,10 +10,24 @@ use Illuminate\View\View;
 
 class MenuController extends Controller
 {
-    public function show(string $slug): View
+    public function show(Request $request, string $slug): View
     {
+        
         $establishment = Establishment::where('slug', $slug)
             ->firstOrFail();
+
+        $table = null;
+
+        if ($request->filled('table')) {
+            $table = $establishment->tables()
+                ->whereKey($request->integer('table'))
+                ->where('status', 'available')
+                ->first();
+
+            if (!$table) {
+                abort(404, 'Mesa não encontrada ou indisponível.');
+            }
+        }
 
         $categories = $establishment->categories()
             ->with([
@@ -41,14 +55,30 @@ class MenuController extends Controller
         return view('menu.show', compact(
             'establishment',
             'categories',
-            'products'
+            'products',
+            'table'
         ));
     }
 
-    public function checkout(string $slug): View
-{
+    public function checkout(
+    Request $request,
+    string $slug
+): View {
     $establishment = Establishment::where('slug', $slug)
         ->firstOrFail();
+
+    $selectedTable = null;
+
+    if ($request->filled('table')) {
+        $selectedTable = $establishment->tables()
+            ->whereKey($request->integer('table'))
+            ->where('status', 'available')
+            ->first();
+
+        if (!$selectedTable) {
+            abort(404, 'Mesa não encontrada ou indisponível.');
+        }
+    }
 
     $tables = $establishment->tables()
         ->where('status', 'available')
@@ -70,7 +100,8 @@ class MenuController extends Controller
     return view('menu.checkout', compact(
         'establishment',
         'tables',
-        'products'
+        'products',
+        'selectedTable'
     ));
 }
 

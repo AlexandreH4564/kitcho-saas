@@ -472,11 +472,26 @@ const products = @json($products);
 
 
         function continueOrder() {
+        if (Object.keys(cart).length === 0) {
+            return;
+        }
 
-    window.location.href =
-        "{{ route('menu.checkout', $establishment->slug) }}";
+        const checkoutUrl = new URL(
+            "{{ route('menu.checkout', $establishment->slug) }}",
+            window.location.origin
+        );
 
-}
+        @if ($table)
+            checkoutUrl.searchParams.set(
+                'table',
+                '{{ $table->id }}'
+            );
+        @endif
+
+        window.location.href = checkoutUrl.toString();
+    }
+
+
     </script>
 
 </body>

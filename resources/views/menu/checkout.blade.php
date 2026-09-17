@@ -98,13 +98,16 @@
                         <option value="">
                             Selecione sua mesa
                         </option>
-
                         @foreach ($tables as $table)
-
-                            <option value="{{ $table->id }}">
+                            <option
+                                value="{{ $table->id }}"
+                                @selected(
+                                    $selectedTable &&
+                                    $selectedTable->id === $table->id
+                                )
+                            >
                                 Mesa {{ $table->number }}
                             </option>
-
                         @endforeach
 
                     </select>

@@ -60,6 +60,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/menu/{slug}', [MenuController::class, 'show'])
     ->name('menu.show');
+
+    Route::get(
+    'establishments/{establishment}/qr-codes',
+    [\App\Http\Controllers\TableQrCodeController::class, 'index']
+)->name('establishments.qr-codes');
+
+Route::resource(
+    'establishments.employees',
+    \App\Http\Controllers\EmployeeController::class
+)->except(['show']);
 });
 
 require __DIR__.'/settings.php';
