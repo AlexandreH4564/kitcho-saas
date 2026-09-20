@@ -43,11 +43,24 @@ class EmployeeController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                'unique:users,email',
+            ],
+
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed',
+            ],
+
             'role' => [
                 'required',
-                Rule::in(['owner', 'manager', 'employee']),
+                Rule::in(['manager', 'employee']),
             ],
         ]);
 
@@ -71,13 +84,7 @@ class EmployeeController extends Controller
         User $employee
     ): View {
         $this->authorizeAccess($establishment);
-
-        abort_unless(
-            $establishment->users()
-                ->whereKey($employee->id)
-                ->exists(),
-            404
-        );
+        $this->authorizeEmployeeManagement($establishment, $employee);
 
         return view('establishments.employees.edit', compact(
             'establishment',
@@ -91,25 +98,21 @@ class EmployeeController extends Controller
         User $employee
     ): RedirectResponse {
         $this->authorizeAccess($establishment);
-
-        abort_unless(
-            $establishment->users()
-                ->whereKey($employee->id)
-                ->exists(),
-            404
-        );
+        $this->authorizeEmployeeManagement($establishment, $employee);
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+
             'email' => [
                 'required',
                 'email',
                 'max:255',
                 Rule::unique('users', 'email')->ignore($employee->id),
             ],
+
             'role' => [
                 'required',
-                Rule::in(['owner', 'manager', 'employee']),
+                Rule::in(['manager', 'employee']),
             ],
         ]);
 
@@ -133,13 +136,7 @@ class EmployeeController extends Controller
         User $employee
     ): RedirectResponse {
         $this->authorizeAccess($establishment);
-
-        abort_unless(
-            $establishment->users()
-                ->whereKey($employee->id)
-                ->exists(),
-            404
-        );
+        $this->authorizeEmployeeManagement($establishment, $employee);
 
         $establishment->users()->detach($employee->id);
 
@@ -157,5 +154,32 @@ class EmployeeController extends Controller
                 ->exists(),
             403
         );
+    }
+
+    private function authorizeEmployeeManagement(
+        Establishment $establishment,
+        User $employee
+    ): void {
+        $membership = $establishment->users()
+            ->whereKey($employee->id)
+            ->first();
+
+        abort_unless($membership, 404);
+
+        $employeeRole = $membership->pivot->role;
+
+        $currentUserRole = auth()->user()
+            ->establishments()
+            ->whereKey($establishment->id)
+            ->first()
+            ->pivot
+            ->role;
+
+        if (
+            $employeeRole === 'owner' &&
+            $currentUserRole !== 'owner'
+        ) {
+            abort(403);
+        }
     }
 }

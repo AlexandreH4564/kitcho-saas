@@ -23,6 +23,17 @@
     --color-zinc-900: #171717;
     --color-zinc-950: #0a0a0a;
 
+    /* Minhas Cores */
+    --color-ki-verde: #328E6E;
+
+    --color-ki-verde-dark: #5FB895;
+
+    --color-ki-branco: #FFFFFF;
+    --color-kitcho-ice: #F2E6DA;
+    --color-kitcho-mint: #7E9B86;
+    --color-kitcho-moss: #2F4A3F;
+
+
     --color-accent: var(--color-neutral-800);
     --color-accent-content: var(--color-neutral-800);
     --color-accent-foreground: var(--color-white);
@@ -61,6 +72,68 @@ select:focus[data-flux-control] {
     @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
 }
 
+[data-flux-sidebar-item][data-current="true"] {
+    background-color: var(--color-ki-verde);
+}
+
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */
+@layer components {
+
+    /* Item selecionado */
+   /* Item selecionado */
+[data-flux-sidebar-item][data-current] {
+    color: var(--color-ki-verde) !important;
+    background-color: var(--color-ki-branco) !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+    border-radius: 20vh !important;
+}
+
+/* Item selecionado ao passar o mouse */
+[data-flux-sidebar-item][data-current]:hover {
+    color: var(--color-ki-verde) !important;
+    background-color: var(--color-ki-branco) !important;
+    border-radius: 20vh !important;
+}
+
+/* Qualquer item da sidebar no hover */
+[data-flux-sidebar-item]:hover {
+    border-radius: 20vh !important;
+}
+
+    .dark [data-flux-sidebar-item][data-current] {
+        color: var(--color-ki-branco) !important;
+        background-color: var(--color-ki-verde) !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        border-radius: 20vh !important;
+    }
+
+    /* Itens não selecionados */
+    [data-flux-sidebar-item]:not([data-current]) {
+        color: var(--color-ki-branco) !important;
+    }
+
+
+    /* Títulos dos grupos da sidebar */
+[data-flux-sidebar] .text-zinc-400 {
+    color: rgba(255, 255, 255, 0.75) !important;
+    font-size: 0.7rem !important;
+    font-weight: 600 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+    /* Nome do usuário */
+[data-flux-sidebar] span.text-zinc-500 {
+    color: var(--color-ki-branco) !important;
+}
+
+/* Nome Kitch’o da logo */
+[data-flux-sidebar] div.min-w-0.text-sm.font-medium.truncate {
+    color: #FFFFFF !important;
+}
+
+}

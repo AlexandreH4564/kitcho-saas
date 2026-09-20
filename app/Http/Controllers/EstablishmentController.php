@@ -12,21 +12,33 @@ class EstablishmentController extends Controller
 {
     public function index(): View
     {
-        $establishments = auth()->user()
+        $establishment = auth()->user()
             ->establishments()
-            ->latest()
-            ->get();
+            ->first();
 
-        return view('establishments.index', compact('establishments'));
+        return view('establishments.index', compact(
+            'establishment'
+        ));
     }
 
     public function create(): View
     {
+        abort_if(
+            auth()->user()->establishments()->exists(),
+            403
+        );
+
         return view('establishments.create');
     }
 
     public function store(Request $request): RedirectResponse
     {
+        // Uma conta pode possuir apenas um estabelecimento.
+        abort_if(
+            auth()->user()->establishments()->exists(),
+            403
+        );
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'address' => ['required', 'string', 'max:1000'],
@@ -43,22 +55,34 @@ class EstablishmentController extends Controller
         ]);
 
         return redirect()
-            ->route('establishments.index')
+            ->route('establishments.show', $establishment)
             ->with('success', 'Estabelecimento criado com sucesso.');
     }
 
     public function show(Establishment $establishment): View
     {
-        return view('establishments.show', compact('establishment'));
+        $this->authorizeEstablishment($establishment);
+
+        return view('establishments.show', compact(
+            'establishment'
+        ));
     }
 
     public function edit(Establishment $establishment): View
     {
-        return view('establishments.edit', compact('establishment'));
+        $this->authorizeEstablishment($establishment);
+
+        return view('establishments.edit', compact(
+            'establishment'
+        ));
     }
 
-    public function update(Request $request, Establishment $establishment): RedirectResponse
-    {
+    public function update(
+        Request $request,
+        Establishment $establishment
+    ): RedirectResponse {
+        $this->authorizeEstablishment($establishment);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'address' => ['required', 'string', 'max:1000'],
@@ -70,17 +94,31 @@ class EstablishmentController extends Controller
         ]);
 
         return redirect()
-            ->route('establishments.index')
+            ->route('establishments.show', $establishment)
             ->with('success', 'Estabelecimento atualizado com sucesso.');
     }
 
     public function destroy(Establishment $establishment): RedirectResponse
     {
+        $this->authorizeEstablishment($establishment);
+
         $establishment->delete();
 
         return redirect()
             ->route('establishments.index')
             ->with('success', 'Estabelecimento excluído com sucesso.');
+    }
+
+    private function authorizeEstablishment(
+        Establishment $establishment
+    ): void {
+        abort_unless(
+            auth()->user()
+                ->establishments()
+                ->whereKey($establishment->id)
+                ->exists(),
+            403
+        );
     }
 
     private function generateUniqueSlug(string $name): string
